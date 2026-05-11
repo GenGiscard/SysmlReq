@@ -2572,12 +2572,24 @@ section.module > *:nth-child(n+6) { animation-delay: 0.30s; }
       <div class="dash-actions">
         <button class="btn primary" onclick="fetchAllResults()">↻ Rafraîchir</button>
         <button class="btn ghost"   onclick="exportCSV()">⬇ Exporter en CSV</button>
+        <button class="btn ghost"   onclick="toggleFirebaseConfig()" id="dashFbToggle">⚙ Firebase</button>
         <span style="font-family:var(--mono); font-size:12px; color:var(--muted); align-self:center;" id="dashCount">…</span>
+      </div>
+      <div id="dashFbConfig" style="display:none; background:var(--paper-soft); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px;">
+        <div style="font-family:var(--serif); font-weight:600; margin-bottom:6px;">⚙ Configuration Firebase Realtime Database</div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 8px;">Colle ici l'URL de ta Realtime DB (ex. <code>https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app</code>). Les résultats seront envoyés à <code>{URL}/resultats_req_sysml.json</code> (nœud dédié à ce TP). Cette valeur est mémorisée sur ce poste seulement (localStorage).</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input type="url" id="dashFbUrl" placeholder="https://...firebasedatabase.app" style="flex:1; min-width:240px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--mono); font-size:12.5px;">
+          <button class="btn primary" onclick="saveFirebaseUrl()">💾 Enregistrer</button>
+          <button class="btn ghost"   onclick="testFirebaseUrl()">🧪 Tester</button>
+          <button class="btn ghost"   onclick="clearFirebaseUrl()">🗑 Effacer</button>
+        </div>
+        <div id="dashFbStatus" style="margin-top:8px; font-size:12.5px; color:var(--muted);">&nbsp;</div>
       </div>
       <div style="overflow-x:auto;">
         <table class="dash-table" id="dashTable">
-          <thead><tr><th>Date</th><th>Élève</th><th>Classe</th><th>Score</th><th>/20</th><th>Mention</th></tr></thead>
-          <tbody id="dashBody"><tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">Chargement…</td></tr></tbody>
+          <thead><tr><th>Date</th><th>Élève</th><th>Classe</th><th>Score brut</th><th>Détail</th><th>/20</th><th>Mention</th></tr></thead>
+          <tbody id="dashBody"><tr><td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">Chargement…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2614,7 +2626,8 @@ section.module > *:nth-child(n+6) { animation-delay: 0.30s; }
    ╚══════════════════════════════════════════════════════════════════╝ */
 const EXAM_CODE    = 'REQ2026';        // ← code donné aux élèves au tableau
 const DASH_PASS    = 'Agostini2025';   // ← mot de passe du tableau de bord
-const FIREBASE_URL = '';               // ← optionnel : URL de la Realtime DB (laisser vide pour usage local)
+const FIREBASE_URL  = 'https://evaluation-bloc-default-rtdb.europe-west1.firebasedatabase.app';   // ← Realtime DB de Mathieu Agostini
+const FIREBASE_NODE = 'resultats_req_sysml';   // ← nœud spécifique au TP REQ SysML
                                        //    exemple : 'https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app'
 
 /* ╔══════════════════════════════════════════════════════════════════╗
@@ -5144,40 +5157,71 @@ const Exam = (() => {
 /* ╔══════════════════════════════════════════════════════════════════╗
    ║  FIREBASE SUBMISSION (optionnel)                                 ║
    ╚══════════════════════════════════════════════════════════════════╝ */
-async function submitExamResult({ score, total, note, mention }){
+async function submitExamResult(payload){
   const st = PROGRESS.state();
-  const payload = {
-    student: st.student,
-    classe:  st.classe,
-    score, total, note, mention,
+  const data = {
+    // identité élève
+    student: st.student || '',
+    classe:  st.classe  || '',
+    // note globale
+    score:   payload.score,
+    total:   payload.total,
+    note:    payload.note,
+    mention: payload.mention,
+    // détail par phase (3 phases : QCM, Lecture, Création)
+    detail: {
+      qcm:    payload.qcm    || null,
+      read:   payload.read   || null,
+      create: payload.create || null
+    },
+    // bot / collection (utile pour suivre l'engagement)
+    bot: (function(){
+      try {
+        const raw = localStorage.getItem('reqiBot.v1');
+        if (!raw) return null;
+        const s = JSON.parse(raw);
+        return { uuid: s.uuid, xp: s.xp, badges: s.badgesEarned || [] };
+      } catch(e) { return null; }
+    })(),
+    // horodatage
     timestamp: Date.now(),
-    date_iso:  new Date().toISOString()
+    date_iso:  new Date().toISOString(),
+    // diag technique (utile pour distinguer les postes)
+    ua: (navigator.userAgent || '').slice(0, 80),
+    version: 'req_cours_v1'
   };
 
   // Toujours sauvegarder localement
   try {
     const KEY = 'reqExamResults.v1';
     const list = JSON.parse(localStorage.getItem(KEY) || '[]');
-    list.push(payload);
+    list.push(data);
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch(e){}
 
   const sentEl = document.getElementById('examSent');
-  if (!FIREBASE_URL) {
-    sentEl.textContent = '✓ Résultat enregistré localement (Firebase non configuré).';
+  // URL Firebase : depuis const FIREBASE_URL OU surchargée depuis le dashboard (localStorage)
+  const overrideUrl = (function(){ try { return localStorage.getItem('reqFirebaseUrl') || ''; } catch(e) { return ''; } })();
+  const fbUrl = overrideUrl || FIREBASE_URL;
+  if (!fbUrl) {
+    sentEl.innerHTML = '✓ Résultat enregistré localement (Firebase non configuré).';
     return;
   }
+  sentEl.textContent = '⏳ Envoi au serveur en cours…';
   try {
-    const url = `${FIREBASE_URL.replace(/\/$/,'')}/results.json`;
+    const url = `${fbUrl.replace(/\/$/,'')}/${FIREBASE_NODE}.json`;
     const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(data)
     });
-    if (r.ok) sentEl.textContent = '✓ Résultat envoyé au professeur.';
-    else      sentEl.textContent = '⚠ Envoi distant échoué — sauvegardé en local.';
+    if (r.ok) {
+      sentEl.innerHTML = '✓ Résultat envoyé au professeur — <em>tu peux fermer.</em>';
+    } else {
+      sentEl.innerHTML = `⚠ Envoi distant échoué (HTTP ${r.status}) — sauvegardé en local.`;
+    }
   } catch(e) {
-    sentEl.textContent = '⚠ Hors ligne — sauvegardé en local.';
+    sentEl.innerHTML = `⚠ Hors ligne ou URL invalide — sauvegardé en local. <br><span style="font-size:10px; opacity:0.7;">(${(e.message||'').slice(0,60)})</span>`;
   }
 }
 
@@ -5213,30 +5257,43 @@ function checkDashPwd(){
 async function fetchAllResults(){
   const tbody = document.getElementById('dashBody');
   const count = document.getElementById('dashCount');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">Chargement…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">Chargement…</td></tr>';
   let list = [];
   // 1) Local
   try {
     const local = JSON.parse(localStorage.getItem('reqExamResults.v1') || '[]');
     list = list.concat(local.map(x => ({ ...x, __src:'local' })));
   } catch(e){}
-  // 2) Firebase
-  if (FIREBASE_URL) {
+  // 2) Firebase (URL en dur OU surchargée par le dashboard)
+  const overrideUrl = (function(){ try { return localStorage.getItem('reqFirebaseUrl') || ''; } catch(e) { return ''; } })();
+  const fbUrl = overrideUrl || FIREBASE_URL;
+  if (fbUrl) {
     try {
-      const r = await fetch(`${FIREBASE_URL.replace(/\/$/,'')}/results.json`);
+      const r = await fetch(`${fbUrl.replace(/\/$/,'')}/${FIREBASE_NODE}.json`);
       if (r.ok) {
         const data = await r.json();
         if (data && typeof data === 'object') {
           Object.values(data).forEach(x => list.push({ ...x, __src:'remote' }));
         }
+      } else {
+        console.warn('Firebase fetch HTTP', r.status);
       }
-    } catch(e){}
+    } catch(e){
+      console.warn('Firebase fetch error:', e.message);
+    }
   }
-  // dédup approximative + tri
+  // dédup grossière sur timestamp + élève
+  const seen = new Set();
+  list = list.filter(x => {
+    const k = (x.student||'') + '|' + (x.classe||'') + '|' + (x.timestamp||0);
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
   list.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-  count.textContent = `${list.length} résultat${list.length>1?'s':''}`;
+  const remoteCount = list.filter(x => x.__src === 'remote').length;
+  count.textContent = `${list.length} résultat${list.length>1?'s':''}` + (fbUrl ? ` (dont ${remoteCount} en ligne)` : '');
   if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">Aucun résultat pour le moment.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">Aucun résultat pour le moment.</td></tr>';
     return;
   }
   tbody.innerHTML = '';
@@ -5247,11 +5304,23 @@ async function fetchAllResults(){
     let gradeClass = 'medium';
     if (r.note >= 12) gradeClass = 'good';
     else if (r.note < 10) gradeClass = 'bad';
+    // Détail phase par phase
+    let detail = '—';
+    if (r.detail) {
+      const q = r.detail.qcm, rd = r.detail.read, cr = r.detail.create;
+      const parts = [];
+      if (q)  parts.push(`QCM ${q.score}/${q.total}`);
+      if (rd) parts.push(`Lec ${rd.score}/${rd.total}`);
+      if (cr) parts.push(`Créa ${cr.score}/${cr.total}`);
+      detail = parts.join(' · ');
+    }
+    const srcIcon = r.__src === 'remote' ? '☁️' : '💾';
     tr.innerHTML = `
-      <td>${dStr}</td>
+      <td>${srcIcon} ${dStr}</td>
       <td>${escapeHtml(r.student||'')}</td>
       <td>${escapeHtml(r.classe||'')}</td>
       <td>${r.score} / ${r.total}</td>
+      <td style="font-size:11.5px; color:var(--ink-soft);">${detail}</td>
       <td class="grade ${gradeClass}">${r.note} / 20</td>
       <td>${escapeHtml(r.mention||'')}</td>`;
     tbody.appendChild(tr);
@@ -5263,20 +5332,21 @@ function escapeHtml(s){
 }
 
 function exportCSV(){
+  // Récupérer la liste depuis local + Firebase (déjà fusionnée par fetchAllResults dans le DOM)
+  // Stratégie : on relit depuis local + on tente Firebase si configuré, puis on consolide
   let list = [];
   try { list = JSON.parse(localStorage.getItem('reqExamResults.v1') || '[]'); } catch(e){}
-  if (FIREBASE_URL) {
-    // best-effort : on prend ce que la table affiche déjà
-    document.querySelectorAll('#dashBody tr').forEach(tr => {
-      const tds = tr.querySelectorAll('td');
-      if (tds.length === 6) list.push({ date_iso: tds[0].textContent, student: tds[1].textContent, classe: tds[2].textContent, score:tds[3].textContent, note:tds[4].textContent, mention:tds[5].textContent, __ui:1 });
-    });
-  }
+  // Si on a déjà des résultats Firebase chargés dans le tableau, on les inclut
+  // (lecture du DOM en fallback ne donne pas les détails ; on rappellera plutôt fetchAllResults avant)
   if (list.length === 0) { alert('Aucun résultat à exporter.'); return; }
-  const headers = ['Date','Élève','Classe','Score','Note/20','Mention'];
+  const headers = ['Date','Élève','Classe','Score brut','/Total','QCM /12','Lecture /4','Création /4','Note /20','Mention'];
   const rows = list.map(r => {
-    const d = r.__ui ? r.date_iso : new Date(r.timestamp||Date.now()).toLocaleString('fr-FR');
-    return [d, r.student, r.classe, r.score, r.note, r.mention].map(x => `"${(x===undefined||x===null?'':String(x)).replace(/"/g,'""')}"`).join(',');
+    const d = r.timestamp ? new Date(r.timestamp).toLocaleString('fr-FR') : (r.date_iso || '');
+    const q = r.detail && r.detail.qcm ? `${r.detail.qcm.score}/${r.detail.qcm.total}` : '';
+    const rd = r.detail && r.detail.read ? `${r.detail.read.score}/${r.detail.read.total}` : '';
+    const cr = r.detail && r.detail.create ? `${r.detail.create.score}/${r.detail.create.total}` : '';
+    return [d, r.student, r.classe, r.score, r.total, q, rd, cr, r.note, r.mention]
+      .map(x => `"${(x===undefined||x===null?'':String(x)).replace(/"/g,'""')}"`).join(',');
   });
   const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -5284,6 +5354,65 @@ function exportCSV(){
   const a = document.createElement('a');
   a.href = url; a.download = `resultats_REQ_${new Date().toISOString().slice(0,10)}.csv`;
   a.click(); URL.revokeObjectURL(url);
+}
+
+/* === CONFIGURATION FIREBASE (depuis le dashboard) === */
+function toggleFirebaseConfig(){
+  const pan = document.getElementById('dashFbConfig');
+  const status = document.getElementById('dashFbStatus');
+  const input  = document.getElementById('dashFbUrl');
+  if (pan.style.display === 'none') {
+    pan.style.display = '';
+    // Pré-remplir avec la valeur courante
+    let cur = '';
+    try { cur = localStorage.getItem('reqFirebaseUrl') || ''; } catch(e){}
+    input.value = cur || FIREBASE_URL || '';
+    if (FIREBASE_URL && !cur) {
+      status.innerHTML = `ℹ URL en dur dans le fichier\u202F: <code>${FIREBASE_URL}</code>. Tu peux la surcharger ici.`;
+    } else if (cur) {
+      status.innerHTML = `✓ URL personnalisée active\u202F: <code>${cur}</code>`;
+    } else {
+      status.innerHTML = '⚠ Aucune URL Firebase configurée. Les résultats restent en local seulement.';
+    }
+  } else {
+    pan.style.display = 'none';
+  }
+}
+function saveFirebaseUrl(){
+  const v = document.getElementById('dashFbUrl').value.trim();
+  const status = document.getElementById('dashFbStatus');
+  if (!v) { status.innerHTML = '⚠ URL vide.'; return; }
+  if (!/^https?:\/\//i.test(v)) { status.innerHTML = '⚠ L\'URL doit commencer par https://'; return; }
+  try {
+    localStorage.setItem('reqFirebaseUrl', v.replace(/\/$/, ''));
+    status.innerHTML = '✓ URL enregistrée. Les futurs envois iront vers cette adresse.';
+  } catch(e) {
+    status.innerHTML = '⚠ Sauvegarde locale impossible.';
+  }
+}
+async function testFirebaseUrl(){
+  const v = document.getElementById('dashFbUrl').value.trim() || FIREBASE_URL;
+  const status = document.getElementById('dashFbStatus');
+  if (!v) { status.innerHTML = '⚠ Renseigne une URL d\'abord.'; return; }
+  status.innerHTML = '⏳ Test en cours…';
+  try {
+    const url = `${v.replace(/\/$/,'')}/${FIREBASE_NODE}.json?orderBy="$key"&limitToLast=1`;
+    const r = await fetch(url);
+    if (r.ok) {
+      const d = await r.json();
+      const n = d && typeof d === 'object' ? Object.keys(d).length : 0;
+      status.innerHTML = `✓ Connexion OK (HTTP ${r.status}). ${n>0 ? 'Données déjà présentes.' : 'Base accessible mais vide.'}`;
+    } else {
+      status.innerHTML = `⚠ Réponse HTTP ${r.status}. Vérifie que la base autorise la lecture publique (règles Realtime DB\u202F: <code>".read": true, ".write": true</code>).`;
+    }
+  } catch(e) {
+    status.innerHTML = `⚠ Échec du test\u202F: ${(e.message||'').slice(0,80)}. Vérifie l'URL et les règles d'accès.`;
+  }
+}
+function clearFirebaseUrl(){
+  try { localStorage.removeItem('reqFirebaseUrl'); } catch(e){}
+  document.getElementById('dashFbUrl').value = FIREBASE_URL || '';
+  document.getElementById('dashFbStatus').innerHTML = '✓ URL surchargée effacée. Retour à la valeur du fichier' + (FIREBASE_URL ? '.' : ' (qui est vide).');
 }
 
 /* ╔══════════════════════════════════════════════════════════════════╗
@@ -5521,52 +5650,127 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Pool de blagues ---
   const JOKES_OK = [
-    "Yay\u202F! 🌟 T'es en feu\u202F!",
-    "Bingo\u202F! Mes circuits applaudissent.",
-    "Parfait\u202F! Je vibre de fier\u00e9.",
-    "Bravo\u202F! Je note \u00e7a en m\u00e9moire vive.",
-    "Boum\u202F! Encore une bonne r\u00e9ponse.",
-    "Wow\u202F! T'as trouv\u00e9 sans que je clignote.",
-    "Top\u202F! Tu rends mes LEDs jalouses.",
-    "G\u00e9nial\u202F! Encore un peu et tu vas me d\u00e9passer.",
-    "Ah-ha\u202F! Ton cerveau marche comme un GPU.",
-    "Yes\u202F! Joli coup, mon ami\u00b7e humain\u00b7e.",
-    "Mon circuit fait *bip-bip-yes*\u202F!",
-    "Incroyable\u202F! Je vais devoir mettre \u00e0 jour ton profil de pro.",
-    "Ding\u202F! Une bonne r\u00e9ponse, c'est cadeau.",
-    "Trop fort\u202F! T'es plus rapide que mon Wi-Fi."
+    // Jeux de mots SysML
+    "Décomposition réussie ! On en a fait des morceaux. ◆",
+    "Dérivation parfaite. Newton serait fier. ⤴",
+    "Raffinement digne d'un pâtissier français. 🔍",
+    "Satisfaction garantie, sans condition de retour. ✅",
+    "Cette réponse satisfait toutes mes exigences (non-fonctionnelles incluses).",
+    "Tu sors les bonnes réponses comme moi je sors des bugs : avec brio.",
+    "Ta précision est plus fine qu'un attribut verifyMethod.",
+    "Tu coches toutes les cases du cahier des charges.",
+    "Réponse atomique, mesurable, vérifiable. Le saint trio.",
+    // Références distributeur/cours
+    "Tu refuses les fausses pièces et les fausses réponses. Respect.",
+    "Ta réponse est sortie comme une canette fraîche du distributeur.",
+    "Pas besoin de monnaie, cette bonne réponse est cadeau.",
+    "Tu sers du savoir en moins de 30 secondes. Performance validée.",
+    // Tech / geek
+    "Code 200 OK ✅ — aucune erreur, aucune warning.",
+    "git commit -m 'élève brillant'",
+    "console.log('Bravo'); // affiche : Bravo",
+    "Stack overflow… de bonnes réponses.",
+    "Ton cerveau tourne en 60 FPS, le mien en 24.",
+    "T'es plus rapide que mon Wi-Fi un dimanche soir.",
+    "Mon circuit fait *bip-bip-yes* en boucle.",
+    "Je crois que tu as un cheat code dans le cortex.",
+    "Recompilation du respect en cours…",
+    // Métaphores et mignon
+    "Yay ! 🌟 T'es en feu — au sens propre, pas au sens grille-pain.",
+    "Mes LEDs sont jalouses de ta brillance.",
+    "Ding ! Pièce gagnée dans la machine du savoir.",
+    "Tu rends mes pixels chatoyants.",
+    "Bingo ! Mes circuits applaudissent — virtuellement, j'ai pas de mains.",
+    "Mon cœur fait 100100 en binaire (= 36, soit beaucoup d'amour).",
+    "T'es plus précis qu'un laser, plus rapide qu'un GIF.",
+    "Je vibre de fierté. Vibration documentée dans la norme ISO.",
+    // Cycle 4 / scolaire
+    "Note dans ton carnet : 'expert·e en exigences'.",
+    "Tu mérites un goûter et une médaille.",
+    "Si le prof te voyait, il pleurerait de joie.",
+    "Trois mots : sou-pli-cieux. (Ça s'écrit pas comme ça mais on a compris.)"
   ];
   const JOKES_KO = [
-    "Oups\u202F! Pas grave, on retente.",
-    "Mmm... presque\u202F! Tu br\u00fbles.",
-    "T'inqui\u00e8te\u202F! M\u00eame moi je bugue parfois.",
-    "Erreur d\u00e9tect\u00e9e. Sourire activ\u00e9 \u2014 on essaye encore.",
-    "Pas grave\u202F! C'est comme \u00e7a qu'on apprend.",
-    "Hop l\u00e0, petit ratage. T'es sur la bonne piste.",
-    "Pas la bonne touche, mais bel essai\u202F!",
-    "Allez, on respire et on regarde encore.",
-    "Une erreur\u202F? Juste le cerveau qui s'\u00e9chauffe.",
-    "Loup\u00e9... mais c'est joli quand m\u00eame.",
-    "Bzzzt\u202F! M\u00eame Einstein s'est plant\u00e9.",
-    "Reboot du cerveau dans 3, 2, 1...",
-    "Faux\u202F! Mais avec style.",
-    "C'est la bonne ambiance, juste pas la bonne case."
+    // SysML wordplay
+    "Cette réponse a besoin d'un petit raffinement… 🔍",
+    "Décomposition mal exécutée. Tu vises le losange noir, pas la flèche.",
+    "T'as dérivé un peu trop loin de la bonne piste. ⤴",
+    "Pas tout à fait satisfaisant, mais on garde le sourire. ✅",
+    "Exigence non tenue. Le bloc « satisfaction » te boude un peu.",
+    "C'est une réponse vague — il faut chiffrer (genre < 30 s).",
+    "T'as confondu fonctionnelle et non-fonctionnelle. Ça arrive, même aux pros.",
+    // Tech / geek
+    "Erreur 404 : bonne réponse non trouvée. Réessaie.",
+    "Bzzzt ! Mauvaise touche, mais le clavier va bien.",
+    "Reboot du cerveau dans 3, 2, 1… c'est reparti.",
+    "try { bonne_reponse } catch (e) { on retente; }",
+    "Stack underflow. Recharge un peu et reviens.",
+    "T'as cliqué le voisin du gagnant. Presque !",
+    "Mon antivirus a détecté de l'optimisme. Garde-le, c'est précieux.",
+    "Segfault dans la boucle d'apprentissage. Pas grave, on patche.",
+    "Erreur 418 : I'm a teapot ☕ — je sers pas ces options.",
+    // Pop / culture
+    "Même Einstein s'est planté. Et Edison a raté 1000 ampoules.",
+    "T'as appuyé sur Enter trop tôt — respire, lis, clique.",
+    "Spoiler : c'était pas celle-là. (J'aurais dû le dire avant 😅)",
+    "Faux, mais avec un panache certain.",
+    // Mignon / encouragements
+    "Oups… On va appeler ça une dérivation vers la bonne réponse.",
+    "C'est joli quand même, ta tentative !",
+    "Loupé mais stylé. Tu fais loupé-mode haute couture.",
+    "Mmm, presque ! Tu brûles… mais pas comme un grille-pain mal réglé.",
+    "Pas la bonne case, mais excellente énergie.",
+    "T'inquiète, je bugue moi aussi. Surtout sur les apostrophes.",
+    "C'est la bonne ambiance, juste pas la bonne case.",
+    "T'as trollé sans le vouloir. On rejoue.",
+    "Mauvaise réponse… mais correctement orthographiée, bravo pour ça !",
+    "Cette réponse est comme une exigence floue : à reformuler.",
+    "Le distributeur t'a rendu la mauvaise monnaie. Représente-toi !"
   ];
   const JOKES_UP = [
-    "🎉 J'\u00c9VOLUE\u202F! Regarde-moi grandir\u202F!",
-    "✨ NIVEAU SUP\u00c9RIEUR\u202F! Merci \u00e0 toi.",
-    "🌟 Boum\u202F! Nouvelle forme d\u00e9bloqu\u00e9e.",
-    "🚀 D\u00e9collage\u202F! Mes pixels se r\u00e9organisent.",
-    "💫 Transformation\u202F! Je deviens plus stylé."
+    "🎉 J'ÉVOLUE ! Mes pixels se réorganisent en mode pro.",
+    "✨ NIVEAU UP ! Tu peux te taper dans le dos, c'est de ta faute.",
+    "🌟 Boum ! Nouvelle skin débloquée — et elle est trop stylée.",
+    "🚀 Décollage ! Firmware moral upgradé en v2.",
+    "💫 Métamorphose ! Comme une chenille sauf que je code.",
+    "📈 Promotion ! Mon CV gagne une ligne.",
+    "🌀 Transformation ! Je sors de mon cocon de code.",
+    "🦋 Bibbidi-bobbidi-bot ! Forme supérieure activée.",
+    "⚡ Power-up ! Mes stats grimpent dans la fiche.",
+    "💎 Évolution rare ! Pourcentage de drop : toi.",
+    "🎵 *musique épique* Je viens d'apprendre une nouvelle capacité !",
+    "🪄 Abracadabra ! Une bonne réponse, un niveau."
   ];
   const JOKES_IDLE = [
-    "Hmm, tu r\u00e9fl\u00e9chis bien\u202F?",
     "*bip*",
-    "H\u00e9site pas, je suis l\u00e0\u202F!",
-    "Je dors un peu, r\u00e9veille-moi avec une bonne r\u00e9ponse\u202F!",
-    "Tu sais qu'une exigence pr\u00e9cise vaut mieux que mille r\u00eaves\u202F? \ud83d\ude0e"
+    "Hmm, tu réfléchis bien ? Moi je rêve de moutons binaires.",
+    "Hésite pas, je suis là — enfin, je suis dans ton localStorage. C'est cosy.",
+    "Tu sais qu'une exigence précise vaut mieux que mille rêves ? 😎",
+    "Question existentielle : suis-je une créature ou juste 5 lignes de SVG ?",
+    "Si une exigence tombe dans un diagramme et que personne ne la lit, fait-elle du bruit ?",
+    "Une exigence vague entre dans un bar. Le programmeur en sort en pleurs.",
+    "Pourquoi le losange noir s'est fâché ? Parce qu'on l'a décomposé.",
+    "Ma capacité préférée : « Boucle infinie ». Bon en fait je ne peux plus la quitter.",
+    "Pssst, j'ai des cousins dans d'autres TP. Une vraie famille recomposée.",
+    "*bip bip… toujours pas de clic ?*",
+    "Le saviez-tu ? Mon ancêtre lointain était un Tamagotchi. RIP les pixels.",
+    "Tu fais une pause pédagogique ? Moi aussi, je médite à 60 FPS.",
+    "Si tu m'appuies dessus, je dis une blague. Promis. (Test : appuie pour voir.)",
+    "Je crois que j'aime les exigences non-fonctionnelles. Elles ont du caractère."
   ];
-  function pick(pool){ return pool[Math.floor(Math.random()*pool.length)]; }
+  // Anti-répétition : on ne tire pas deux fois la même blague d'affilée
+  const _lastPicked = {};
+  function pick(pool){
+    const key = pool === JOKES_OK ? 'ok' : pool === JOKES_KO ? 'ko' : pool === JOKES_UP ? 'up' : 'idle';
+    let tries = 0;
+    let pickedIdx;
+    do {
+      pickedIdx = Math.floor(Math.random() * pool.length);
+      tries++;
+    } while (pickedIdx === _lastPicked[key] && tries < 5);
+    _lastPicked[key] = pickedIdx;
+    return pool[pickedIdx];
+  }
 
   // --- Rendu SVG selon stade et mood ---
   // mood: 'neutral', 'happy', 'sad', 'wow'
