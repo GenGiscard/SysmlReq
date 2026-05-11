@@ -2417,12 +2417,113 @@ section.module > *:nth-child(n+6) { animation-delay: 0.30s; }
               </div>
             </div>
             <div class="act-stats">
+              <span class="stat" id="examPhaseLabel">Phase 1/3 · QCM</span>
               <span class="stat" id="examNum">1 / 12</span>
             </div>
           </div>
           <div class="quiz-question" id="examQ">…</div>
           <div class="quiz-options" id="examOpts"></div>
           <div class="quiz-feedback neutral show" id="examFb" style="display:none;">Réponse enregistrée. Question suivante…</div>
+        </div>
+
+        <!-- ÉTAPE 3b : LECTURE — compléter un diagramme -->
+        <div id="examRead" style="display:none;">
+          <div class="act-header">
+            <div class="act-icon-wrap">
+              <div class="act-icon">🔍</div>
+              <div class="act-titles">
+                <h3>Phase 2 · Lecture de diagramme</h3>
+                <p>Complète les <strong>4 cases vides</strong> du diagramme d'un feu tricolore.</p>
+              </div>
+            </div>
+            <div class="act-stats">
+              <span class="stat">Phase 2/3 · Lecture</span>
+              <span class="stat" id="examReadScore">0 / 4</span>
+            </div>
+          </div>
+          <div class="complete-stage">
+            <svg viewBox="0 0 700 360" width="100%" id="examReadSvg">
+              <defs>
+                <marker id="arrRead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#6d4ed8" stroke-width="1.4"/></marker>
+              </defs>
+              <rect x="6" y="10" width="688" height="340" rx="6" fill="none" stroke="#c9bfa9" stroke-width="1" stroke-dasharray="4 3"/>
+              <text x="350" y="30" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" fill="#4b32a5">req [Feu tricolore]</text>
+              <!-- liens -->
+              <line x1="350" y1="118" x2="180" y2="170" stroke="#1d1c1a" stroke-width="1.2"/>
+              <line x1="350" y1="118" x2="520" y2="170" stroke="#1d1c1a" stroke-width="1.2"/>
+              <polygon points="350,118 343,108 350,98 357,108" fill="#1d1c1a"/>
+              <line x1="180" y1="228" x2="180" y2="270" stroke="#1d1c1a" stroke-width="1.2"/>
+              <line x1="520" y1="228" x2="520" y2="270" stroke="#1d1c1a" stroke-width="1.2"/>
+              <polygon points="180,228 173,218 180,208 187,218" fill="#1d1c1a"/>
+              <polygon points="520,228 513,218 520,208 527,218" fill="#1d1c1a"/>
+              <!-- Parent (donné) -->
+              <g>
+                <rect x="270" y="60" width="160" height="58" rx="3" fill="#ede8fb" stroke="#6d4ed8" stroke-width="1.5"/>
+                <text x="350" y="76" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
+                <text x="350" y="93" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="14" fill="#1d1c1a">Sécurité routière</text>
+                <text x="350" y="110" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1"</text>
+              </g>
+              <!-- 1er enfant donné -->
+              <g>
+                <rect x="100" y="170" width="160" height="58" rx="3" fill="#fff" stroke="#6d4ed8" stroke-width="1.3"/>
+                <text x="180" y="186" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
+                <text x="180" y="203" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="13" fill="#1d1c1a">Signalisation visible</text>
+                <text x="180" y="220" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1.1"</text>
+              </g>
+              <!-- SLOT 1 : 2e enfant -->
+              <g class="complete-slot empty" data-slot="1">
+                <rect x="440" y="170" width="160" height="58" rx="3"/>
+                <text x="520" y="186" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
+                <text x="520" y="205" text-anchor="middle" font-family="Fraunces,serif" font-weight="700" font-size="22" fill="#b48015" data-role="label">?</text>
+                <text x="520" y="220" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1.2"</text>
+              </g>
+              <!-- SLOT 2 : dérivée gauche -->
+              <g class="complete-slot empty" data-slot="2">
+                <rect x="100" y="270" width="160" height="58" rx="3"/>
+                <text x="180" y="286" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
+                <text x="180" y="305" text-anchor="middle" font-family="Fraunces,serif" font-weight="700" font-size="22" fill="#b48015" data-role="label">?</text>
+                <text x="180" y="320" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1.1.1"</text>
+              </g>
+              <!-- SLOT 3 : dérivée droite -->
+              <g class="complete-slot empty" data-slot="3">
+                <rect x="440" y="270" width="160" height="58" rx="3"/>
+                <text x="520" y="286" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
+                <text x="520" y="305" text-anchor="middle" font-family="Fraunces,serif" font-weight="700" font-size="22" fill="#b48015" data-role="label">?</text>
+                <text x="520" y="320" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1.2.1"</text>
+              </g>
+              <!-- SLOT 4 : étiquette relation pointillée -->
+              <text class="complete-slot empty" data-slot="4" x="220" y="252" font-family="JetBrains Mono,monospace" font-size="11" fill="#b48015" font-weight="700" data-role="textonly">[?]</text>
+            </svg>
+          </div>
+          <div class="complete-options" id="examReadOptions">
+            <span class="ph">👆 Clique d'abord sur une case dans le diagramme.</span>
+          </div>
+          <div class="complete-status" id="examReadStatus">&nbsp;</div>
+        </div>
+
+        <!-- ÉTAPE 3c : CRÉATION — construire un diagramme -->
+        <div id="examCreate" style="display:none;">
+          <div class="act-header">
+            <div class="act-icon-wrap">
+              <div class="act-icon">🛠️</div>
+              <div class="act-titles">
+                <h3>Phase 3 · Création de diagramme</h3>
+                <p>Construis le diagramme REQ d'une <strong>lampe de bureau</strong>.</p>
+              </div>
+            </div>
+            <div class="act-stats">
+              <span class="stat">Phase 3/3 · Création</span>
+              <span class="stat" id="examCreateScore">0 / 4</span>
+            </div>
+          </div>
+          <div class="create-steps" id="examCreateSteps">
+            <div class="create-step active" data-step="1"><span class="num"><span>1</span></span> Choisir le parent</div>
+            <span class="create-arrow">→</span>
+            <div class="create-step" data-step="2"><span class="num"><span>2</span></span> Trier F / NF</div>
+            <span class="create-arrow">→</span>
+            <div class="create-step" data-step="3"><span class="num"><span>3</span></span> Choisir la relation</div>
+          </div>
+          <div class="create-pane" id="examCreatePane"></div>
         </div>
 
         <!-- ÉTAPE 4 : résultats -->
@@ -4714,7 +4815,7 @@ const EXAM_DATA = [
   { q:'« Le bruit du distributeur reste sous 50 dB » est…', opts:['Fonctionnelle','Non-fonctionnelle','Un acteur','Une opération'], a:1 },
   { q:'Que signifie l\'attribut "id" (identifiant) d\'une exigence ?', opts:['Sa date de création','Son identifiant unique','Sa priorité','Son auteur'], a:1 },
   { q:'Quel est le rôle de la "méthode de vérification" ?', opts:['Donner le coût','Indiquer comment vérifier l\'exigence','Donner l\'auteur','Donner le numéro de version'], a:1 },
-  { q:'Le losange noir plein dans un REQ représente quelle relation ?', opts:['Dérivation ⤴','Satisfaction ✅','Décomposition ◆','Raffinement 🔍'], a:2 },
+  { q:'Le losange noir plein dans un REQ représente quelle relation ?', opts:['Dérivation','Satisfaction','Décomposition','Raffinement'], a:2 },
   { q:'Quelle relation indique qu\'un composant tient une exigence ?', opts:['Décomposition ◆','Dérivation ⤴','Raffinement 🔍','Satisfaction ✅'], a:3 },
   { q:'L\'exigence "Service en moins de 30 s" est dérivée de "Performance". Quelle relation ?', opts:['Décomposition ◆','Dérivation ⤴','Raffinement 🔍','Satisfaction ✅'], a:1 },
   { q:'Une bonne exigence doit être :', opts:['Vague et générale','Précise, mesurable, atomique','Sans chiffres','Très longue'], a:1 },
@@ -4725,12 +4826,35 @@ const EXAM_DATA = [
 
 const Exam = (() => {
   let i, answers, locked, startedAt;
+  // Scores des phases 2 et 3
+  let readScore = 0;   // /4 (4 slots à compléter)
+  let createScore = 0; // /4 (parent, tri F/NF, relation, bonus)
+
+  // === DONNÉES PHASE 2 (LECTURE) ===
+  const READ_SLOTS = {
+    '1': { good: 'Vitesse de réaction',  choices: ['Vitesse de réaction', 'Couleur du boîtier', 'Connexion Bluetooth', 'Logo gravé'], type:'label', exp:'Bonne réponse — exigence de Sécurité routière.' },
+    '2': { good: 'Lumière > 200\u202Flux', choices: ['Lumière > 200\u202Flux', 'Bouton rouge', 'Forme arrondie', 'Mode silencieux'], type:'label', exp:'Exigence non-fonctionnelle chiffrée, dérivée de Signalisation visible.' },
+    '3': { good: 'Cycle < 60\u202Fs',     choices: ['Cycle < 60\u202Fs', 'Sticker fluo', 'Garantie 10 ans', 'Antenne radio'], type:'label', exp:'Précision dérivée de l\u2019exigence Vitesse de réaction.' },
+    '4': { good: '«dérivation»',          choices: ['«dérivation»', '«décomposition»', '«satisfaction»', '«raffinement»'], type:'textonly', exp:'Flèche pointillée vers une exigence plus précise → dérivation.' }
+  };
+
+  // === DONNÉES PHASE 3 (CRÉATION) ===
+  const CREATE_ITEMS = [
+    { id:'lampe',  label:'Confort de lecture',                 func:false, parent:true },
+    { id:'orient', label:'S\u2019orienter dans toutes les directions', func:true },
+    { id:'inten',  label:'Lumière réglable de 100 à 800\u202Flux', func:false },
+    { id:'allume', label:'S\u2019allumer/éteindre avec un bouton',     func:true },
+    { id:'cons',   label:'Consommer moins de 8\u202FW',                func:false }
+  ];
 
   function start(){
     i = 0; answers = []; locked = false;
+    readScore = 0; createScore = 0;
     startedAt = Date.now();
     document.getElementById('examPlay').style.display = '';
     document.getElementById('examEnd').style.display = 'none';
+    document.getElementById('examRead').style.display = 'none';
+    document.getElementById('examCreate').style.display = 'none';
     document.getElementById('examLockStep1').style.display = 'none';
     document.getElementById('examLockStep2').style.display = 'none';
     const st = PROGRESS.state();
@@ -4768,27 +4892,250 @@ const Exam = (() => {
     });
     setTimeout(() => {
       i++;
-      if (i >= EXAM_DATA.length) finish();
+      if (i >= EXAM_DATA.length) startReadPhase();
       else render();
     }, 600);
   }
 
-  function finish(){
-    let score = 0;
-    EXAM_DATA.forEach((q, k) => { if (answers[k] === q.a) score++; });
-    const total = EXAM_DATA.length;
-    const note  = Math.round(score / total * 20 * 10) / 10;
+  // === PHASE 2 : LECTURE ===
+  function startReadPhase() {
     document.getElementById('examPlay').style.display = 'none';
+    document.getElementById('examRead').style.display = '';
+    const svg = document.getElementById('examReadSvg');
+    const opts = document.getElementById('examReadOptions');
+    const status = document.getElementById('examReadStatus');
+    const scoreEl = document.getElementById('examReadScore');
+    let activeSlot = null;
+    let solved = 0;
+    const total = Object.keys(READ_SLOTS).length;
+
+    function showOptions(slotNum) {
+      const data = READ_SLOTS[slotNum];
+      opts.innerHTML = '';
+      const choices = data.choices.slice().sort(() => Math.random() - 0.5);
+      choices.forEach(ch => {
+        const b = document.createElement('button');
+        b.className = 'complete-opt';
+        b.textContent = ch;
+        b.addEventListener('click', () => answerSlot(slotNum, ch, b));
+        opts.appendChild(b);
+      });
+    }
+    function answerSlot(slotNum, choice, btn) {
+      const data = READ_SLOTS[slotNum];
+      const el = svg.querySelector(`.complete-slot[data-slot="${slotNum}"]`);
+      const correct = choice === data.good;
+      if (data.type === 'textonly') el.textContent = choice;
+      else {
+        const lbl = el.querySelector('[data-role="label"]');
+        lbl.textContent = choice;
+        lbl.setAttribute('font-size', '13');
+        lbl.setAttribute('fill', correct ? '#1a8e4a' : '#1d1c1a');
+        lbl.setAttribute('font-weight', '600');
+      }
+      if (correct) {
+        el.classList.remove('empty','active'); el.classList.add('correct');
+        AUDIO.tick();
+        solved++;
+        readScore = solved;
+        scoreEl.textContent = `${solved} / ${total}`;
+        status.innerHTML = `✓ Case validée.`;
+        status.style.color = '#1a8e4a';
+        opts.querySelectorAll('.complete-opt').forEach(o => o.disabled = true);
+        activeSlot = null;
+        if (solved === total) {
+          status.innerHTML = `🎯 Lecture terminée\u202F! Passage à la phase 3 dans 2\u202Fs\u2026`;
+          setTimeout(startCreatePhase, 2000);
+        } else {
+          setTimeout(() => opts.innerHTML = '<span class="ph">👆 Choisis une autre case.</span>', 1200);
+        }
+      } else {
+        AUDIO.tick();
+        el.classList.add('wrong');
+        btn.classList.add('used'); btn.disabled = true;
+        status.textContent = '✗ Réponse incorrecte. Essaie autre chose ou clique une autre case.';
+        status.style.color = '#d72121';
+        setTimeout(() => el.classList.remove('wrong'), 500);
+      }
+    }
+    svg.querySelectorAll('.complete-slot').forEach(g => {
+      g.addEventListener('click', () => {
+        if (g.classList.contains('correct')) return;
+        svg.querySelectorAll('.complete-slot').forEach(x => x.classList.remove('active'));
+        g.classList.add('active');
+        activeSlot = g.dataset.slot;
+        showOptions(activeSlot);
+        status.innerHTML = '👇 Clique l\u2019étiquette qui doit aller dans cette case.';
+        status.style.color = 'var(--accent-deep)';
+      });
+    });
+  }
+
+  // === PHASE 3 : CRÉATION ===
+  function startCreatePhase() {
+    document.getElementById('examRead').style.display = 'none';
+    document.getElementById('examCreate').style.display = '';
+    const pane = document.getElementById('examCreatePane');
+    const stepEls = document.querySelectorAll('#examCreateSteps .create-step');
+    const scoreEl = document.getElementById('examCreateScore');
+
+    let step = 1;
+    let triResults = {};
+
+    function setStep(n) {
+      step = n;
+      stepEls.forEach(el => {
+        const s = +el.dataset.step;
+        el.classList.toggle('active', s === step);
+        el.classList.toggle('done', s < step);
+      });
+      if (step === 1) renderStep1();
+      else if (step === 2) renderStep2();
+      else if (step === 3) renderStep3();
+      else renderEnd();
+    }
+
+    function updateScore(v) { createScore = v; scoreEl.textContent = `${v} / 4`; }
+
+    function renderStep1() {
+      pane.innerHTML = `
+        <div class="create-prompt">📌 <strong>Étape 1\u202F:</strong> identifie l'<strong>exigence parent</strong> de la lampe de bureau (la plus générale).</div>
+        <div class="create-list" id="examL1"></div>
+      `;
+      const list = document.getElementById('examL1');
+      CREATE_ITEMS.forEach(it => {
+        const d = document.createElement('div');
+        d.className = 'create-listitem';
+        d.textContent = it.label;
+        d.addEventListener('click', () => {
+          if (d.classList.contains('correct') || d.classList.contains('wrong')) return;
+          if (it.parent) {
+            d.classList.add('correct'); AUDIO.tick();
+            updateScore(createScore + 1);
+            list.querySelectorAll('.create-listitem').forEach(x => x.style.pointerEvents = 'none');
+            setTimeout(() => setStep(2), 1000);
+          } else {
+            d.classList.add('wrong'); AUDIO.tick();
+            // En examen, pas de retry — on enregistre l'erreur et on passe
+            setTimeout(() => {
+              list.querySelectorAll('.create-listitem').forEach(x => x.style.pointerEvents = 'none');
+              // Révéler la bonne réponse en vert
+              list.querySelectorAll('.create-listitem').forEach((node, idx) => {
+                if (CREATE_ITEMS[idx].parent) node.classList.add('correct');
+              });
+              setTimeout(() => setStep(2), 1100);
+            }, 600);
+          }
+        });
+        list.appendChild(d);
+      });
+    }
+
+    function renderStep2() {
+      const subs = CREATE_ITEMS.filter(i => !i.parent);
+      pane.innerHTML = `
+        <div class="create-prompt">📌 <strong>Étape 2\u202F:</strong> pour chaque sous-exigence, choisis <strong>F</strong> (fonctionnelle) ou <strong>NF</strong> (non-fonctionnelle).</div>
+        <div class="create-list" id="examL2"></div>
+        <div style="text-align:right; margin-top:10px;">
+          <button class="btn-anim" id="examL2Validate" disabled>Valider l\u2019étape ▶</button>
+        </div>
+      `;
+      const list = document.getElementById('examL2');
+      const btn = document.getElementById('examL2Validate');
+      subs.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'create-listitem';
+        row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '10px';
+        row.innerHTML = `
+          <span style="flex:1;">${it.label}</span>
+          <button class="flash-btn func" data-id="${it.id}" data-val="F" style="padding:6px 14px; font-size:13px;">⚙️ F</button>
+          <button class="flash-btn nfunc" data-id="${it.id}" data-val="NF" style="padding:6px 14px; font-size:13px;">📏 NF</button>
+        `;
+        list.appendChild(row);
+      });
+      list.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.dataset.id, val = b.dataset.val;
+          triResults[id] = val;
+          list.querySelectorAll(`button[data-id="${id}"]`).forEach(x => x.style.opacity = '0.4');
+          b.style.opacity = '1';
+          AUDIO.tick();
+          if (Object.keys(triResults).length === subs.length) btn.disabled = false;
+        });
+      });
+      btn.addEventListener('click', () => {
+        let ok = 0;
+        subs.forEach(it => {
+          const expected = it.func ? 'F' : 'NF';
+          if (triResults[it.id] === expected) ok++;
+        });
+        // +1 si parfait, +0.5 si ≥ 3/4 (arrondi inférieur → +0)
+        if (ok === subs.length) updateScore(createScore + 1);
+        AUDIO.tick();
+        setTimeout(() => setStep(3), 800);
+      });
+    }
+
+    function renderStep3() {
+      pane.innerHTML = `
+        <div class="create-prompt">📌 <strong>Étape 3\u202F:</strong> quelle relation relie les sous-exigences au parent\u202F?</div>
+        <div class="create-list" id="examL3">
+          <div class="create-listitem" data-rel="containment">◆ Décomposition</div>
+          <div class="create-listitem" data-rel="derive">⤴ Dérivation</div>
+          <div class="create-listitem" data-rel="refine">🔍 Raffinement</div>
+          <div class="create-listitem" data-rel="satisfy">✅ Satisfaction</div>
+        </div>
+      `;
+      const list = document.getElementById('examL3');
+      list.querySelectorAll('.create-listitem').forEach(d => {
+        d.addEventListener('click', () => {
+          if (d.classList.contains('correct') || d.classList.contains('wrong')) return;
+          if (d.dataset.rel === 'containment') {
+            d.classList.add('correct'); AUDIO.tick();
+            updateScore(createScore + 1);
+          } else {
+            d.classList.add('wrong'); AUDIO.tick();
+            const right = list.querySelector('[data-rel="containment"]');
+            if (right) right.classList.add('correct');
+          }
+          list.querySelectorAll('.create-listitem').forEach(x => x.style.pointerEvents = 'none');
+          // Bonus +1 si toutes les étapes ont été parfaites (createScore est déjà à 3)
+          if (createScore >= 3) updateScore(createScore + 1);
+          setTimeout(finish, 1200);
+        });
+      });
+    }
+
+    setStep(1);
+  }
+
+  function finish(){
+    let qcmScore = 0;
+    EXAM_DATA.forEach((q, k) => { if (answers[k] === q.a) qcmScore++; });
+    const qcmTotal = EXAM_DATA.length;     // 12
+    const readTotal = 4;
+    const createTotal = 4;
+    const total = qcmTotal + readTotal + createTotal;  // 20
+    const totalScore = qcmScore + readScore + createScore;
+    const note = Math.round(totalScore / total * 20 * 10) / 10;
+
+    document.getElementById('examCreate').style.display = 'none';
     document.getElementById('examEnd').style.display = '';
     const v = document.getElementById('examVerdict');
     document.getElementById('examScoreNum').textContent = note + ' / 20';
-    document.getElementById('examScorePct').textContent = `${score} bonnes réponses sur ${total}`;
+    document.getElementById('examScorePct').textContent =
+      `QCM\u202F: ${qcmScore}/${qcmTotal} · Lecture\u202F: ${readScore}/${readTotal} · Création\u202F: ${createScore}/${createTotal}`;
     let mention;
     if (note >= 16)      { v.textContent = '⭐ Très bien';  v.className='verdict success'; mention = 'Très bien'; AUDIO.fanfare(); }
     else if (note >= 12) { v.textContent = 'Bien';          v.className='verdict success'; mention = 'Bien'; AUDIO.fanfare(); }
     else if (note >= 10) { v.textContent = 'Passable';       v.className='verdict warn';    mention = 'Passable'; }
     else                 { v.textContent = 'Insuffisant';    v.className='verdict bad';     mention = 'Insuffisant'; }
-    submitExamResult({ score, total, note, mention });
+    submitExamResult({
+      score: totalScore, total, note, mention,
+      qcm: { score: qcmScore, total: qcmTotal },
+      read: { score: readScore, total: readTotal },
+      create: { score: createScore, total: createTotal }
+    });
   }
 
   return { start };
@@ -5529,7 +5876,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // --- Hook submitExamResult pour stocker le score d'examen ---
+  // --- Hook submitExamResult pour stocker le score d'examen + XP selon la note ---
   if (typeof window.submitExamResult === 'function') {
     const _submit = window.submitExamResult;
     window.submitExamResult = function(payload) {
@@ -5545,6 +5892,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ps.classe && !state.trainerClass) state.trainerClass = ps.classe;
           }
           save();
+          // XP proportionnel à la note /20
+          // 0–9   → +2 XP, 10–11 → +5, 12–13 → +8, 14–15 → +11, 16–17 → +14, 18–20 → +18
+          const note = payload.note || 0;
+          let bonus, label;
+          if      (note >= 18) { bonus = 18; label = `🏆 ${note}/20 — Excellence\u202F! +${bonus} XP`; }
+          else if (note >= 16) { bonus = 14; label = `⭐ ${note}/20 — Très bien\u202F! +${bonus} XP`; }
+          else if (note >= 14) { bonus = 11; label = `✨ ${note}/20 — Très bon score\u202F! +${bonus} XP`; }
+          else if (note >= 12) { bonus = 8;  label = `👍 ${note}/20 — Bien\u202F! +${bonus} XP`; }
+          else if (note >= 10) { bonus = 5;  label = `📘 ${note}/20 — Passable. +${bonus} XP`; }
+          else                 { bonus = 2;  label = `💪 ${note}/20 — On retentera\u202F! +${bonus} XP`; }
+          // Décalage pour laisser parler les autres réactions de fin
+          setTimeout(() => { if (window.Bot) Bot.win(label, bonus); }, 1800);
         }
       } catch(e) {}
       return _submit(payload);
