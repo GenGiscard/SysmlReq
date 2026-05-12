@@ -2433,7 +2433,7 @@ section.module > *:nth-child(n+6) { animation-delay: 0.30s; }
               <div class="act-icon">🔍</div>
               <div class="act-titles">
                 <h3>Phase 2 · Lecture de diagramme</h3>
-                <p>Complète les <strong>4 cases vides</strong> du diagramme d'un feu tricolore.</p>
+                <p>Complète les <strong>4 cases vides</strong> du diagramme d'un sac à dos.</p>
               </div>
             </div>
             <div class="act-stats">
@@ -2447,7 +2447,7 @@ section.module > *:nth-child(n+6) { animation-delay: 0.30s; }
                 <marker id="arrRead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#6d4ed8" stroke-width="1.4"/></marker>
               </defs>
               <rect x="6" y="10" width="688" height="340" rx="6" fill="none" stroke="#c9bfa9" stroke-width="1" stroke-dasharray="4 3"/>
-              <text x="350" y="30" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" fill="#4b32a5">req [Feu tricolore]</text>
+              <text x="350" y="30" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" fill="#4b32a5">req [Sac à dos scolaire]</text>
               <!-- liens -->
               <line x1="350" y1="118" x2="180" y2="170" stroke="#1d1c1a" stroke-width="1.2"/>
               <line x1="350" y1="118" x2="520" y2="170" stroke="#1d1c1a" stroke-width="1.2"/>
@@ -2460,14 +2460,14 @@ section.module > *:nth-child(n+6) { animation-delay: 0.30s; }
               <g>
                 <rect x="270" y="60" width="160" height="58" rx="3" fill="#ede8fb" stroke="#6d4ed8" stroke-width="1.5"/>
                 <text x="350" y="76" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
-                <text x="350" y="93" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="14" fill="#1d1c1a">Sécurité routière</text>
+                <text x="350" y="93" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="14" fill="#1d1c1a">Sac à dos pratique</text>
                 <text x="350" y="110" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1"</text>
               </g>
               <!-- 1er enfant donné -->
               <g>
                 <rect x="100" y="170" width="160" height="58" rx="3" fill="#fff" stroke="#6d4ed8" stroke-width="1.3"/>
                 <text x="180" y="186" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4b32a5">«exigence»</text>
-                <text x="180" y="203" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="13" fill="#1d1c1a">Signalisation visible</text>
+                <text x="180" y="203" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="13" fill="#1d1c1a">Portage confortable</text>
                 <text x="180" y="220" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#524d44">id="R1.1"</text>
               </g>
               <!-- SLOT 1 : 2e enfant -->
@@ -4845,10 +4845,10 @@ const Exam = (() => {
 
   // === DONNÉES PHASE 2 (LECTURE) ===
   const READ_SLOTS = {
-    '1': { good: 'Vitesse de réaction',  choices: ['Vitesse de réaction', 'Couleur du boîtier', 'Connexion Bluetooth', 'Logo gravé'], type:'label', exp:'Bonne réponse — exigence de Sécurité routière.' },
-    '2': { good: 'Lumière > 200\u202Flux', choices: ['Lumière > 200\u202Flux', 'Bouton rouge', 'Forme arrondie', 'Mode silencieux'], type:'label', exp:'Exigence non-fonctionnelle chiffrée, dérivée de Signalisation visible.' },
-    '3': { good: 'Cycle < 60\u202Fs',     choices: ['Cycle < 60\u202Fs', 'Sticker fluo', 'Garantie 10 ans', 'Antenne radio'], type:'label', exp:'Précision dérivée de l\u2019exigence Vitesse de réaction.' },
-    '4': { good: '«dérivation»',          choices: ['«dérivation»', '«décomposition»', '«satisfaction»', '«raffinement»'], type:'textonly', exp:'Flèche pointillée vers une exigence plus précise → dérivation.' }
+    '1': { good: 'Rangement organisé',          choices: ['Rangement organisé', 'Couleur fluo', 'Marque connue', 'Stickers brodés'],            type:'label',    exp:'Bonne réponse — un sac pratique doit aussi être bien organisé.' },
+    '2': { good: 'Bretelles rembourrées',       choices: ['Bretelles rembourrées', 'Boucle Velcro', 'Sangle plastique', 'Logo en relief'],     type:'label',    exp:'Précision dérivée de Portage confortable — les bretelles doivent être rembourrées.' },
+    '3': { good: '3 compartiments minimum',     choices: ['3 compartiments minimum', 'Porte-clés inclus', 'Garantie 2 ans', 'Made in France'],  type:'label',    exp:'Précision dérivée de Rangement organisé — au moins 3 compartiments pour bien séparer.' },
+    '4': { good: '«dérivation»',                 choices: ['«dérivation»', '«décomposition»', '«satisfaction»', '«raffinement»'],                type:'textonly', exp:'Flèche pointillée vers une exigence plus précise → dérivation.' }
   };
 
   // === DONNÉES PHASE 3 (CRÉATION) ===
@@ -5159,10 +5159,22 @@ const Exam = (() => {
    ╚══════════════════════════════════════════════════════════════════╝ */
 async function submitExamResult(payload){
   const st = PROGRESS.state();
+  // Fallback robuste : si PROGRESS n'a pas le nom/classe (édition partielle, reset
+  // localStorage, etc.), on tente de récupérer depuis les champs DOM de l'examen.
+  let student = (st.student || '').trim();
+  let classe  = (st.classe  || '').trim();
+  if (!student) {
+    const n = document.getElementById('studentName');
+    if (n && n.value) student = n.value.trim();
+  }
+  if (!classe) {
+    const c = document.getElementById('studentClasse');
+    if (c && c.value) classe = c.value.trim();
+  }
   const data = {
     // identité élève
-    student: st.student || '',
-    classe:  st.classe  || '',
+    student: student,
+    classe:  classe,
     // note globale
     score:   payload.score,
     total:   payload.total,
@@ -5315,10 +5327,12 @@ async function fetchAllResults(){
       detail = parts.join(' · ');
     }
     const srcIcon = r.__src === 'remote' ? '☁️' : '💾';
+    const studentDisplay = (r.student && r.student.trim()) ? escapeHtml(r.student) : '<em style="color:var(--muted);">(non renseigné)</em>';
+    const classeDisplay  = (r.classe  && r.classe.trim())  ? escapeHtml(r.classe)  : '<em style="color:var(--muted);">—</em>';
     tr.innerHTML = `
       <td>${srcIcon} ${dStr}</td>
-      <td>${escapeHtml(r.student||'')}</td>
-      <td>${escapeHtml(r.classe||'')}</td>
+      <td>${studentDisplay}</td>
+      <td>${classeDisplay}</td>
       <td>${r.score} / ${r.total}</td>
       <td style="font-size:11.5px; color:var(--ink-soft);">${detail}</td>
       <td class="grade ${gradeClass}">${r.note} / 20</td>
@@ -5549,18 +5563,18 @@ document.addEventListener('DOMContentLoaded', () => {
   stSubmit.addEventListener('click', trySubmitStudent);
   [stName, stClasse].forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') trySubmitStudent(); }));
 
-  // Si déjà déverrouillé, sauter à l'étape correspondante
+  // Si l'examen est déjà déverrouillé (code REQ2026 OK), on saute l'étape 1.
+  // MAIS on force toujours la ressaisie du nom et de la classe — un PC partagé entre
+  // plusieurs élèves doit attribuer chaque résultat au bon élève.
   const st0 = PROGRESS.state();
   if (PROGRESS.examUnlocked()) {
     stStep1.style.display = 'none';
-    if (st0.student && st0.classe) {
-      // On laisse l'identification quand même, pré-remplie, pour confirmation
-      stStep2.style.display = '';
-      stName.value = st0.student;
-      stClasse.value = st0.classe;
-    } else {
-      stStep2.style.display = '';
-    }
+    stStep2.style.display = '';
+    // On vide systématiquement pour forcer chaque élève à saisir son nom et sa classe
+    stName.value = '';
+    stClasse.value = '';
+    stMsg.className = 'code-msg muted';
+    stMsg.innerHTML = 'Saisis ton nom et ta classe pour que le résultat soit bien attribué à <strong>toi</strong>.';
   }
 
   // Reset
